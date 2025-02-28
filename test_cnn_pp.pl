@@ -12,7 +12,7 @@ my $epochs = 30;
 my $learning_rate = 0.1;
 my $debug = 0;
 my $save_epoch_weights = 0;
-my $validation_batch = 10;
+my $validation_batch = -1;
 my $load_initial_weights = 0;
 
 my $noshuffle = 1;
