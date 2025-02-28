@@ -278,10 +278,7 @@ sub backward {
    foreach my $q (0 .. $self->{c2_kernels} - 1) {
       foreach my $i (0 .. $self->{c2_size} - 1) {
          foreach my $j (0 .. $self->{c2_size} - 1) {
-            if ($j == 0) {
-               $self->{delta_c2}[$q][$i][$j] = 0;
-            }
-            $self->{delta_c2}[$q][$i][$j] += 0.25 * $self->{delta_p2}[$q][int($i)/2][int($j/2)];
+            $self->{delta_c2}[$q][$i][$j] = 0.25 * $self->{delta_p2}[$q][int($i)/2][int($j/2)];
          }
       }
       print_2d_array("delta_c2 $q", $self->{delta_c2}[$q]) if $self->{debug};
