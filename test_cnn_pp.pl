@@ -1,6 +1,6 @@
 use Modern::Perl;
 use lib '.';
-use ML::CNN;
+use ML::CNN_pp;
 use ML::Util qw(print_2d_array print_1d_array);
 use File::Slurp;
 use List::Util qw/shuffle/;
@@ -8,11 +8,14 @@ use Data::Dumper;
 use POSIX qw(strftime);
 
 my $test_data_size = -1;
-my $epochs = 10;
-my $learning_rate = 0.01;
+my $epochs = 30;
+my $learning_rate = 0.1;
 my $debug = 0;
-my $save_epoch_weights = 1;
-my $validation_batch = -1;
+my $save_epoch_weights = 0;
+my $validation_batch = 10;
+my $load_initial_weights = 0;
+
+my $noshuffle = 1;
 
 sub argmax {
    my $arr = shift;
@@ -65,15 +68,23 @@ $|++;
 my ($training_data, $validation_data, $test_data) = mnist_loader::load_data_wrapper();
 
 
-my $CNN = ML::CNN->new(kernel_size => 5,
+say "initialising CNN";
+my $CNN = ML::CNN_pp->new(kernel_size => 5,
                        c1_kernels => 6,
                        input_dimensions => [ 28, 28 ],
-                       debug => $debug);
+                       debug => $debug, 
+                       load_initial_weights => 1);
+say "initialising CNN complete";
 # reformat data item
 #say Dumper($training_data->[0]);
 my @images;
 my @labels;
-my @validation_data = shuffle(@$test_data);
+my @validation_data; 
+if ($noshuffle == 1) { 
+   @validation_data = @$test_data; 
+} else { 
+   @validation_data = shuffle(@$test_data);
+}
 if ($validation_batch == -1) {
    $validation_batch = scalar(@$validation_data);
 }
@@ -98,7 +109,12 @@ if ($test_data_size == -1) {
    $test_data_size = scalar(@$training_data);
 }
 foreach my $e (0 .. $epochs - 1) { # epoch
-   my @training_data = shuffle(@$training_data);
+   my @training_data;
+   if ($noshuffle) {
+      @training_data = @$training_data;
+   } else {
+      @training_data = shuffle(@$training_data);
+   }
    foreach my $item (0 .. $test_data_size - 1) {
       my $label;
       foreach my $y (0 .. $#{$training_data[$item][1]}) {
@@ -127,7 +143,7 @@ foreach my $e (0 .. $epochs - 1) { # epoch
    foreach my $i (0 .. $test_data_size - 1) {
       $CNN->load_label($labels[$i]);
       $CNN->forward($images[$i]);
-      $CNN->loss();
+      say "loss = " . $CNN->loss();
       $CNN->backward();
       $CNN->update_weights_and_biases(batch_size => 1, learning_rate => $learning_rate);
       if ($i % 100 == 0) {
@@ -149,8 +165,9 @@ foreach my $e (0 .. $epochs - 1) { # epoch
   
    foreach my $i (0 .. $validation_batch - 1) {
       $CNN->load_label($v_labels[$i]);
+#print_2d_array("input $i", $v_images[$i]) if $debug == 1;
       $CNN->forward($v_images[$i]);
-      print_2d_array("label", $v_labels[$i]) if $debug == 1;
+      #print_2d_array("label", $v_labels[$i]) if $debug == 1;
       print_2d_array("result", $CNN->{y}) if $debug == 1;
       my $max_calc_idx = argmax($CNN->{y});
       my $max_target_idx = argmax($v_labels[$i]);
