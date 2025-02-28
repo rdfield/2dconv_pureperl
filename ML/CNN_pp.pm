@@ -1,4 +1,4 @@
-package ML::CNN;
+package ML::CNN_pp;
 use Modern::Perl;
 # based on: https://zzutk.github.io/docs/reports/2016.10%20-%20Derivation%20of%20Backpropagation%20in%20Convolutional%20Neural%20Network%20(CNN).pdf
 use Math::Random qw(random_uniform);
